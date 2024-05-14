@@ -1,13 +1,18 @@
-// This is the main file for the Netlify Build plugin {{name}}.
+// This is the main file for the Netlify Build plugin netlify-imageengine.
 // Please read the comments to learn more about the Netlify Build plugin syntax.
 // Find more information in the Netlify documentation.
 
-/* eslint-disable no-unused-vars */
-// The plugin main logic uses `on...` event handlers that are triggered on
-// each new Netlify Build.
-// Anything can be done inside those event handlers.
-// Information about the current build are passed as arguments. The build
-// configuration file and some core utilities are also available.
+import fs from 'node:fs/promises';
+import { glob } from 'glob';;
+import {
+  ERROR_SITE_NAME_REQUIRED,
+  ERROR_INVALID_PUBLISH_DIRECTORY,
+  ERROR_NETLIFY_HOST_UNKNOWN
+} from './lib/errors.js';
+import {
+  updateHtmlImagesToImageEngine
+} from './lib/imageengine.js';
+
 export const onPreBuild = async function ({
   // Whole configuration file. For example, content of `netlify.toml`
   netlifyConfig,
@@ -84,6 +89,80 @@ export const onPreBuild = async function ({
 
   // Display success information
   status.show({ summary: 'Success!' })
+}
+
+export async function onPostBuild({
+  constants,
+  inputs,
+  utils,
+}) {
+  console.log('[ImageEngine] Replacing on-page images with ImageEngine URLs...');
+
+  let host = process.env.URL;
+
+  if (process.env.CONTEXT === 'branch-deploy' || process.env.CONTEXT === 'deploy-preview') {
+    host = process.env.DEPLOY_PRIME_URL || ''
+  }
+
+  if (!host) {
+    console.error(`[ImageEngine] ${ERROR_NETLIFY_HOST_UNKNOWN}`);
+    utils.build.failPlugin(ERROR_NETLIFY_HOST_UNKNOWN);
+    return;
+  }
+
+
+  console.log(`[ImageEngine] Using host: ${host}`);
+
+  //const { PUBLISH_DIR } = constants;
+
+  const PUBLISH_DIR  = "test/angular-quickstart";//for testing
+
+  if(!PUBLISH_DIR) {
+    console.error(`[ImageEngine] ${ERROR_INVALID_PUBLISH_DIRECTORY}`);
+    utils.build.failPlugin(ERROR_INVALID_PUBLISH_DIRECTORY);
+    return;
+  }
+  
+  const {
+    deliveryAddress,
+    directives,
+    folder = process.env.SITE_NAME,
+  } = inputs;
+
+  if (!folder) {
+    console.error(`[ImageEngine] ${ERROR_SITE_NAME_REQUIRED}`);
+    utils.build.failPlugin(ERROR_SITE_NAME_REQUIRED);
+    return;
+  }
+
+  if (!deliveryAddress) {
+    console.error(`[ImageEngine] ${ERROR_DELIVERY_ADDRESS_REQUIRED}`);
+    utils.build.failPlugin(ERROR_DELIVERY_ADDRESS_REQUIRED);
+    return;
+  }
+
+  // Find all HTML source files in the publish directory
+
+  const pages = glob.sync(`${PUBLISH_DIR}/*.html`);
+  const results = await Promise.all(
+    pages.map(async page => {
+      const sourceHtml = await fs.readFile(page, 'utf-8');
+
+      const { html, errors } = await updateHtmlImagesToImageEngine(sourceHtml, {
+        deliveryAddress,
+        directives
+      });
+
+      await fs.writeFile(page, html);
+
+      return {
+        page,
+        errors,
+      };
+    }),
+  );
+
+  const errors = results.filter(({ errors }) => errors.length > 0);
 }
 
 // Other available event handlers

@@ -1,7 +1,8 @@
-name: 'netlify-plugin-{{name}}'
-inputs: []
-# Example inputs:
-#  - name: example
-#    description: Example description
-#    default: 5
-#    required: false
+name: 'netlify-plugin-imageengine'
+inputs: 
+  - name: deliveryAddress
+    required: false
+    description: "Image Engine delivery address that can be used to serve images"
+  - name: directives
+    required: false
+    description: "ImageEngine directives that can be applied to the images" 
