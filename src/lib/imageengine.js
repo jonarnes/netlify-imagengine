@@ -16,7 +16,7 @@ export async function updateHtmlImagesToImageEngine(html, options) {
     const images = Array.from(dom.window.document.querySelectorAll('img'))
     for (const $img of images) {
       const imgSrc = $img.getAttribute('src')
-      if(imgSrc.length > 1){
+      if(imgSrc.length > 1 && !isImageEngineURL(imgSrc,deliveryAddress)){
         let transformedSrc = "";
         transformedSrc = transformSrcURL(imgSrc,deliveryAddress);
         if(transformedSrc.length > 1){
@@ -56,4 +56,12 @@ export function transformSrcURL(orgURL,deliveryAddress ){
 
 export function isRemoteURL(orgURL){
   return orgURL.startsWith('https') || orgURL.startsWith('http')
+}
+
+export function isImageEngineURL(orgURL,deliveryAddress){
+    let isImageEngineURL = false
+    if(orgURL.length > 1 && deliveryAddress.length > 1 && orgURL.includes(deliveryAddress)){
+        return true
+    }
+    return isImageEngineURL;
 }
