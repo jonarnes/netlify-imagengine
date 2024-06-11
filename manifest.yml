@@ -1,8 +1,9 @@
 name: 'netlify-plugin-imageengine'
-inputs: 
+inputs:
   - name: deliveryAddress
     required: false
-    description: "Image Engine delivery address that can be used to serve images"
+    description:
+      'Image Engine delivery address that can be used to serve images'
   - name: directives
     required: false
-    description: "ImageEngine directives that can be applied to the images" 
+    description: 'ImageEngine directives that can be applied to the images'
