@@ -41,10 +41,7 @@ export function transformSrcURL(orgURL, deliveryAddress) {
       finalSrc = urlPrefix + '://' + deliveryAddress + '/' + imageName
     }
   } else {
-    let srcArray = orgURL.split('/')
-    let length = srcArray.length
-    let imageName = srcArray[length - 1]
-    finalSrc = deliveryAddress + '/' + imageName
+    finalSrc = deliveryAddress + orgURL
   }
   return finalSrc
 }
