@@ -62,12 +62,15 @@ export function transformSrcURL(orgURL, deliveryAddress) {
     }
   } else {
     // Handle non-remote URLs (local paths)
-    finalSrc = `${deliveryAddress.replace(/\/$/, '')}/${orgURL.replace(/^\//, '')}`;
+    if (deliveryAddress.startsWith('http://') || deliveryAddress.startsWith('https://') || deliveryAddress.startsWith('//')) {
+      finalSrc = `${deliveryAddress.replace(/\/$/, '')}/${orgURL.replace(/^\//, '')}`;
+    } else {
+      finalSrc = `//${deliveryAddress.replace(/\/$/, '')}/${orgURL.replace(/^\//, '')}`;
+    }
   }
 
   return finalSrc;
 }
-
 
 export function isRemoteURL(orgURL) {
   return orgURL.startsWith('https') || orgURL.startsWith('http') || orgURL.startsWith('//');
