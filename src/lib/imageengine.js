@@ -22,30 +22,53 @@ export async function updateHtmlImagesToImageEngine(html, options) {
           $img.setAttribute('src', ieURL)
         }
       }
+
+      // Handle srcset attribute
+      const imgSrcset = $img.getAttribute('srcset')
+      if (imgSrcset) {
+        const transformedSrcset = imgSrcset.split(',').map(src => {
+          const [url, descriptor] = src.trim().split(' ')
+          let transformedUrl = transformSrcURL(url, deliveryAddress)
+          transformedUrl = build_IE_url(transformedUrl, directives || [])
+          return `${transformedUrl} ${descriptor || ''}`
+        }).join(', ')
+        $img.setAttribute('srcset', transformedSrcset)
+      }
     }
-    return {
-      html: dom.serialize(),
-      errors,
-    }
+    return { html: dom.serialize(), errors }
   }
-}
-export function transformSrcURL(orgURL, deliveryAddress) {
-  let finalSrc = ''
-  if (isRemoteURL(orgURL)) {
-    let srcURL = orgURL.split('://')
-    if (srcURL.length > 1) {
-      let urlPrefix = srcURL[0]
-      let srcArray = srcURL[1].split('/')
-      let length = srcArray.length
-      let imageName = srcArray[length - 1]
-      finalSrc = urlPrefix + '://' + deliveryAddress + '/' + imageName
-    }
-  } else {
-    finalSrc = deliveryAddress + orgURL
-  }
-  return finalSrc
 }
 
+export function transformSrcURL(orgURL, deliveryAddress) {
+  let finalSrc = '';
+  
+  if (isRemoteURL(orgURL)) {
+    // Handle protocol-relative URLs (starting with "//")
+    if (orgURL.startsWith('//')) {
+      let srcArray = orgURL.slice(2).split('/');
+      let length = srcArray.length;
+      let imageName = srcArray[length - 1];
+      finalSrc = '//' + deliveryAddress + '/' + imageName;
+    } else {
+      // Handle fully-qualified URLs (starting with "http://" or "https://")
+      let srcURL = orgURL.split('://');
+      if (srcURL.length > 1) {
+        let urlPrefix = srcURL[0];
+        let srcArray = srcURL[1].split('/');
+        let length = srcArray.length;
+        let imageName = srcArray[length - 1];
+        finalSrc = urlPrefix + '://' + deliveryAddress + '/' + imageName;
+      }
+    }
+  } else {
+    // Handle non-remote URLs (local paths)
+    finalSrc = `${deliveryAddress.replace(/\/$/, '')}/${orgURL.replace(/^\//, '')}`;
+  }
+
+  return finalSrc;
+}
+
+
 export function isRemoteURL(orgURL) {
-  return orgURL.startsWith('https') || orgURL.startsWith('http')
+  return orgURL.startsWith('https') || orgURL.startsWith('http') || orgURL.startsWith('//');
 }

@@ -1,4 +1,6 @@
-Netlify Build plugin netlify-imageengine - Imageengine optimize your images by up to 80% on autopilot for improved SEO, lower bounce rates, better mobile experience, and increased sales.
+Netlify Build plugin netlify-imageengine - Imageengine optimize your images by
+up to 80% on autopilot for improved SEO, lower bounce rates, better mobile
+experience, and increased sales.
 
 # Install
 
