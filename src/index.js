@@ -31,6 +31,8 @@ export async function onPostBuild({ constants, inputs, utils }) {
   const { deliveryAddress, directives } = inputs
   const { PUBLISH_DIR } = constants
 
+  console.log(`[ImageEngine] PUBLISH_DIR: ${PUBLISH_DIR}`);
+
   if (!PUBLISH_DIR) {
     console.error(`[ImageEngine] ${ERROR_INVALID_PUBLISH_DIRECTORY}`)
     utils.build.failPlugin(ERROR_INVALID_PUBLISH_DIRECTORY)
@@ -44,7 +46,7 @@ export async function onPostBuild({ constants, inputs, utils }) {
   }
   // Find all HTML source files in the publish directory
 
-  const pages = glob.sync(`${PUBLISH_DIR}/*.html`)
+  const pages = glob.sync(`${PUBLISH_DIR}/**/*.html`)
   const results = await Promise.all(
     pages.map(async (page) => {
       const sourceHtml = await fs.readFile(page, 'utf-8')

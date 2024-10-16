@@ -1,6 +1,8 @@
 # Netlify ImageEngine Plugin
 
-The Netlify ImageEngine plugin optimizes your images by up to 80% on autopilot, enhancing SEO, reducing bounce rates, improving mobile experiences, and boosting sales.
+The Netlify ImageEngine plugin optimizes your images by up to 80% on autopilot,
+enhancing SEO, reducing bounce rates, improving mobile experiences, and boosting
+sales.
 
 ## Installation
 
@@ -17,32 +19,47 @@ The following `inputs` options are available:
 
 ### Image Optimization
 
-- **Automatic URL Replacement**: The plugin scans HTML files and replaces image URLs with optimized ImageEngine URLs using the `updateHtmlImagesToImageEngine` function.
-  
-- **`srcset` Handling**: It updates `srcset` attributes to ensure all image sources are optimized, improving loading times and image quality across different devices.
+- **Automatic URL Replacement**: The plugin scans HTML files and replaces image
+  URLs with optimized ImageEngine URLs using the `updateHtmlImagesToImageEngine`
+  function.
+- **`srcset` Handling**: It updates `srcset` attributes to ensure all image
+  sources are optimized, improving loading times and image quality across
+  different devices.
 
-- **Error Handling**: The plugin logs errors encountered during the URL transformation process, ensuring smooth operation and easy debugging.
+- **Error Handling**: The plugin logs errors encountered during the URL
+  transformation process, ensuring smooth operation and easy debugging.
 
 ### Build Process Integration
 
-- **Netlify Build Plugin**: The `onPostBuild` function integrates with Netlify's build process, automatically optimizing images after the build completes.
+- **Netlify Build Plugin**: The `onPostBuild` function integrates with Netlify's
+  build process, automatically optimizing images after the build completes.
 
-- **Environment Context Awareness**: The plugin adapts to different Netlify deployment contexts (e.g., branch deploys, deploy previews) by using the appropriate host URL.
+- **Environment Context Awareness**: The plugin adapts to different Netlify
+  deployment contexts (e.g., branch deploys, deploy previews) by using the
+  appropriate host URL.
 
-- **Configuration Validation**: It checks for necessary configurations like `deliveryAddress` and `PUBLISH_DIR`, failing gracefully with informative error messages if they are missing.
+- **Configuration Validation**: It checks for necessary configurations like
+  `deliveryAddress` and `PUBLISH_DIR`, failing gracefully with informative error
+  messages if they are missing.
 
 ## Code Overview
 
 ### `updateHtmlImagesToImageEngine`
 
-This function takes HTML content and options, then updates image URLs to use ImageEngine for optimization. It handles both `src` and `srcset` attributes, ensuring all images are optimized.
+This function takes HTML content and options, then updates image URLs to use
+ImageEngine for optimization. It handles both `src` and `srcset` attributes,
+ensuring all images are optimized.
 
 ### `transformSrcURL`
 
-This function transforms original image URLs to use the ImageEngine delivery address. It handles different types of URLs:
+This function transforms original image URLs to use the ImageEngine delivery
+address. It handles different types of URLs:
 
-- **Remote URLs**: Transforms fully-qualified URLs (e.g., starting with "http://" or "https://") and protocol-relative URLs (e.g., starting with "//").
-- **Local URLs**: Transforms local paths to use the ImageEngine delivery address, ensuring all images are served through ImageEngine for optimization.
+- **Remote URLs**: Transforms fully-qualified URLs (e.g., starting with
+  "http://" or "https://") and protocol-relative URLs (e.g., starting with
+  "//").
+- **Local URLs**: Transforms local paths to use the ImageEngine delivery
+  address, ensuring all images are served through ImageEngine for optimization.
 
-It ensures that the final URL is correctly formatted and ready for ImageEngine processing.
-
+It ensures that the final URL is correctly formatted and ready for ImageEngine
+processing.
