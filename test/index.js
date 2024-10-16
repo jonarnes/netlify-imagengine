@@ -6,6 +6,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { JSDOM } from 'jsdom';
 import { onPostBuild } from '../src/index.js';
+import { transformSrcURL, isRemoteURL } from '../src/lib/imageengine.js';
 
 const NETLIFY_CONFIG = fileURLToPath(
   new URL('../netlify.toml', import.meta.url),
@@ -14,6 +15,8 @@ const __dirname = process.cwd()
 const mocksPath = path.join(__dirname, 'test/mock');
 const tempPath = path.join(mocksPath, 'temp_url');
 const tempPath1 = path.join(mocksPath,"temp_directives")
+const tempPath2 = path.join(mocksPath, 'temp_srcset')
+
 
 async function mkdir(directoryPath) {
   let dir;
@@ -106,3 +109,69 @@ test('Netlify Build should add directives if specified', async (t) => {
     fs.rm(tempPath1, { recursive: true, force: true });    
   }));
 })
+
+test('Netlify Build handles srcset attributes', async (t) => {
+  const mockFiles = (await fs.readdir(mocksPath)).filter(filePath => filePath.includes('.html'));
+  await mkdir(tempPath2);
+  await Promise.all(mockFiles.map(async file => {
+    await fs.copyFile(path.join(mocksPath, file), path.join(tempPath2, file));
+  }))
+  
+  const htmlContent = `
+    <img src="image1.jpg" srcset="image1-small.jpg 300w, image1-large.jpg 1000w">
+    <img src="https://example.com/image2.jpg" srcset="https://example.com/image2-small.jpg 300w, https://example.com/image2-large.jpg 1000w">
+  `;
+  
+  await fs.writeFile(path.join(tempPath2, 'test.html'), htmlContent);
+  
+  process.env.URL = "https://netlify-plugin-imageengine.netlify.app"
+  let deliveryAddress = "test.imageengine.io"
+  
+  await onPostBuild({
+    constants: {
+      PUBLISH_DIR: tempPath2
+    },
+    inputs: {
+      deliveryAddress
+    },
+  })
+  
+  const updatedHtml = await fs.readFile(path.join(tempPath2, 'test.html'), 'utf-8');
+  const dom = new JSDOM(updatedHtml);
+  const images = Array.from(dom.window.document.querySelectorAll('img'));
+  
+  images.forEach(image => {
+    t.true(image.getAttribute('src').includes(deliveryAddress));
+    const srcset = image.getAttribute('srcset');
+    t.truthy(srcset);
+    srcset.split(',').forEach(src => {
+      t.true(src.trim().split(' ')[0].includes(deliveryAddress));
+    });
+  });
+
+  fs.rm(tempPath2, { recursive: true, force: true });
+});
+
+
+test('transformSrcURL handles remote URLs correctly', t => {
+  const deliveryAddress = 'test.imageengine.io';
+  
+  t.is(transformSrcURL('https://example.com/image.jpg', deliveryAddress), 'https://test.imageengine.io/image.jpg');
+  t.is(transformSrcURL('http://example.com/image.jpg', deliveryAddress), 'http://test.imageengine.io/image.jpg');
+  t.is(transformSrcURL('//example.com/image.jpg', deliveryAddress), '//test.imageengine.io/image.jpg');
+});
+
+test('transformSrcURL handles non-remote URLs correctly', t => {
+  const deliveryAddress = 'test.imageengine.io';
+  
+  t.is(transformSrcURL('/images/local.jpg', deliveryAddress), '//test.imageengine.io/images/local.jpg');
+  t.is(transformSrcURL('images/local.jpg', deliveryAddress), '//test.imageengine.io/images/local.jpg');
+});
+
+test('isRemoteURL correctly identifies remote and non-remote URLs', t => {
+  t.true(isRemoteURL('https://example.com/image.jpg'));
+  t.true(isRemoteURL('http://example.com/image.jpg'));
+  t.true(isRemoteURL('//example.com/image.jpg'));
+  t.false(isRemoteURL('/images/local.jpg'));
+  t.false(isRemoteURL('images/local.jpg'));
+});
