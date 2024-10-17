@@ -8,6 +8,23 @@ sales.
 
 Install this plugin from Netlify.
 
+NPM :
+```npm i netlify-plugin-imageengine```
+
+## example netlify.toml
+```
+[[plugins]]
+package = "netlify-plugin-imageengine"
+
+  [plugins.inputs]
+  deliveryAddress = "blazing-fast-pics.cdn.imgeng.in"
+
+  [plugins.inputs.directives]
+  height = 600
+  width = 700
+  rotate = 90
+```
+
 ## Configuration
 
 The following `inputs` options are available:
