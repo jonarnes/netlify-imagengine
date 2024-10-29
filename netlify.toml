@@ -10,3 +10,14 @@ command = "echo onBuild"
 
 [build.environment]
 NODE_VERSION = "18.20.4"
+
+[[plugins]]
+package = "netlify-plugin-imageengine"
+
+  [plugins.inputs]
+  deliveryAddress = "blazing-fast-pics.cdn.imgeng.in"
+
+  [plugins.inputs.directives]
+  height = 600
+  width = 700
+  rotate = 90
